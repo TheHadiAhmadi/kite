@@ -5,9 +5,21 @@ function getMethod(method) {
     return method.toLowerCase();
 }
 
-function findRoute(pathname) {
-    for(const route of config.routes) {
+function getParams(names = [], match) {
+    const params = {}
+
+    for(let i=0; i<names.length; i++) {
+        params[names[i]] = match[i+1]
+    }
+
+    return params
+}
+
+// TODO: route matching priority (sorting)
+function getMatchingRoute(pathname, routes) {
+    for(const route of routes) {
         if(route.pattern.test(pathname)) {
+            route.params = getParams(route.paramNames, pathname.match(route.pattern))
             return route;
         }
     }
@@ -21,11 +33,12 @@ export default async function handler(request) {
 
     const pathname = url.pathname;
 
-    const r = findRoute(pathname)
-    if(!r) {
+    const route = getMatchingRoute(pathname, config.routes)
+
+    if(!route) {
         return new Response('Not found', {status: 404})
     }
-    const mod = await r.handler()
+    const mod = await route.handler()
 
     const fn = mod[method]
     
@@ -34,7 +47,14 @@ export default async function handler(request) {
     }
 
     try {
-        const res = await fn(request)
+        const res = await fn({request, params: route.params})
+
+        res.headers = res.headers ?? {}
+
+        if(res.body && typeof res.body === 'object') {
+            res.body = JSON.stringify(res.body)
+            res.headers['Content-Type'] = 'application/json'
+        }
 
         return new Response(res.body, {
             status: res.status,
