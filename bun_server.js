@@ -1,4 +1,4 @@
-import handle from './handler.js'
+import handle from './handler.ts'
 
 Bun.serve({
     port: 3000,

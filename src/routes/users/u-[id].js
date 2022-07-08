@@ -6,5 +6,5 @@ export async function get({request, params}) {
     return {
         status: 200,
         body: 'info about user: ' + id
- }
+    }
 }
