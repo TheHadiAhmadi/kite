@@ -32,7 +32,10 @@ export default async function handler(request: Request) {
 						}
 					});
 					return {
-						body: res
+						body: res,
+                        headers: {
+                            'Content-Type': "text/html"
+                        }
 					};
 				};
 			}
