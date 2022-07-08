@@ -1,23 +1,28 @@
+import * as $1 from './routes/index.js'
+import * as $2 from './routes/users.js'
+import * as $3 from './routes/users/u-[id].js'
+import * as $4 from './routes/[app]/[table]/[data].js'
+
 export default {
 
     routes: [
         {
             pattern: /^\/$/,
-            handler: () => import('./routes/index.js')
+            handler: $1
         },
         {
             pattern: /^\/users$/,
-            handler: () => import('./routes/users.js')
+            handler: $2
         },
         {
             pattern: /^\/users\/u-(.+)$/,
             paramNames: ['id'],
-            handler: () => import('./routes/users/u-[id].js')
+            handler: $3
         },
         {
             pattern: /^\/(.+)\/(.+)\/(.+)$/,
             paramNames: ['app', 'table', 'data'],
-            handler: () => import('./routes/[app]/[table]/[data].js')
+            handler: $4
         }
 
     ]

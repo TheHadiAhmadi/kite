@@ -38,9 +38,7 @@ export default async function handler(request) {
     if(!route) {
         return new Response('Not found', {status: 404})
     }
-    const mod = await route.handler()
-
-    const fn = mod[method]
+    const fn = route.handler[method]
     
     if(!fn) {
         return new Response('Method not available', {status: 405})
