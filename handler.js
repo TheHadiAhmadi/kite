@@ -1,21 +1,31 @@
 import manifest from './manfiest.js';
-import { getMatchingRoute, getMethod } from './utils.ts';
+import { getMatchingRoute, getMethod } from './utils.js';
 
 
-export default async function handler(request: Request) {
+/**
+ * @param {Request} request
+ */
+export default async function handler(request) {
 	const { pathname } = new URL(request.url);
 	const method = getMethod(request.method);
 
-	const route = getMatchingRoute(pathname, manifest.routes as unknown as Route[]);
+	const route = getMatchingRoute(pathname, manifest.routes);
 
 	if (!route) {
 		return new Response('Not found', { status: 404 });
 	}
 
-	const event: RequestEvent = { request, params: route.params ?? {} };
+    /** @type {RequestEvent} */
+	const event = { request, params: route.params ?? {} };
 
 	// recursive function
-	function getHandler(index: number): RequestHandler {
+    //
+    /**
+     * @param {number} index
+     *
+     * @returns {RequestHandler}
+     * */
+	function getHandler(index) {
 		const currentHandler = route.handlers[index];
         
 		// return the actual endpoint function
@@ -23,7 +33,7 @@ export default async function handler(request: Request) {
 
             // return html
 			if (method === 'get' && currentHandler['default']) {
-				return async (event: RequestEvent) => {
+				return async (event) => {
 					const res = await currentHandler['default']({
 						...event,
 						getData: async () => {
@@ -43,12 +53,14 @@ export default async function handler(request: Request) {
 		}
 
 		// return middleware function
-		return (event) => currentHandler.handle!(event, getHandler(index + 1));
+		return (event) => currentHandler.handle?.(event, getHandler(index + 1));
 	}
 
-	const res: ResponseObject = (await getHandler(0)(event)) as ResponseObject;
+    const handlerFn = await getHandler(0);
 
-	console.log(res);
+    /** @type {ResponseObject} */
+
+	const res = await handlerFn(event);
 
 	res.headers = res.headers ?? {};
 	if (res.body && typeof res.body === 'object') {
@@ -58,6 +70,6 @@ export default async function handler(request: Request) {
 
 	return new Response(res.body, {
 		status: res.status,
-		headers: res.headers as Headers
+		headers: res.headers
 	});
 }

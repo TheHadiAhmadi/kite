@@ -1,0 +1,9 @@
+{
+    "type": "module",
+    "scripts": {
+        "start:node": "npm run routes && node ./entries/node_server.js",
+        "start:bun": "npm run routes && bun ./entries/bun_server.js",
+        "start:deno": "npm run routes && deno run -A --no-check ./entries/deno_server.js",
+        "routes": "node generateRoutes.js"
+    }
+}

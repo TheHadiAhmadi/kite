@@ -1,3 +1,6 @@
+import fs1 from 'fs'
+const fs = fs1.promises
+
 function routeToRegex(string) {
 	const pattern = `^${string
 		.replace(/\//g, '\\/')
@@ -22,22 +25,33 @@ function routeToRegex(string) {
 let i = 0;
 let map = {};
 async function processFolder(path, handlers = [], route = '') {
-	let files = [];
-	for await (let file of Deno.readDir(path)) {
-		files.push(file);
-	}
+	//let files = [];
+    const files = await fs.readdir(path)
+	//for await (let file of Deno.readDir(path)) {
+//		files.push(file);
+//	}
 
-	if (files.some((file) => file.name.startsWith('__middleware.js'))) {
+	if (files.some((file) => file.startsWith('__middleware.js'))) {
 		map[++i] = path + '/__middleware.js';
 		handlers.push(i);
 	}
 
+    async function isDirectory(name) {
+        const stat = await fs.stat(path + '/' + name);
+        return stat.isDirectory();
+    }
+    async function isFile(name) {
+        const stat = await fs.stat(path + '/' + name);
+        return stat.isFile();
+    }
+
+
 	await Promise.all(
 		files.map(async (file) => {
-			if (file.isFile) {
-				map[++i] = path + '/' + file.name;
+			if (await isFile(file)) {
+				map[++i] = path + '/' + file;
 
-				const { pattern, names } = routeToRegex(route + '/' + file.name);
+				const { pattern, names } = routeToRegex(route + '/' + file);
 
 				routes.push({
 					pattern,
@@ -46,8 +60,8 @@ async function processFolder(path, handlers = [], route = '') {
 				});
 			}
 
-			if (file.isDirectory) {
-				await processFolder(path + '/' + file.name, handlers, route + '/' + file.name);
+			if (await isDirectory(file)) {
+				await processFolder(path + '/' + file, handlers, route + '/' + file);
 			}
 		})
 	);
@@ -55,10 +69,11 @@ async function processFolder(path, handlers = [], route = '') {
 
 let routes = [];
 
-const routesFolder = './src/routes';
+const routesFolder = './routes';
 await processFolder(routesFolder);
 
-const manifest = `
+const manifest = `/* This file is auto generated from 'generateRoutes.js' file */
+
 ${Object.entries(map)
 	.map(([key, val]) => `import * as $${key} from '${val}'`)
 	.join('\n')}
@@ -78,4 +93,4 @@ export default {
 
 `;
 
-Deno.writeTextFile('manfiest.js', manifest);
+fs.writeFile('manfiest.js', manifest);
