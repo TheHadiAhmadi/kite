@@ -35,11 +35,34 @@ export function getParams(names = [], match) {
  * @returns {Route|null}
  * */
 export function getMatchingRoute(pathname, routes) {
+	let result = null
+	// remove trailingSlach /url/ => /url
+	if(pathname.endsWith('/')) pathname = pathname.slice(0, pathname.length-1)
+	
 	for (const route of routes) {
 		if (route.pattern.test(pathname)) {
-			route.params = getParams(route.paramNames, pathname.match(route.pattern));
-			return route;
+
+			console.log('matched', route.pattern)
+			if(!result) {
+				result = route
+			} else {
+				if(result.isRest && !route.isRest) result = route;
+				if(result.isDynamic && !route.isDynamic) result = route;
+				if(result.isDynamic && route.isDynamic) {
+					if(result.paramNames.length > route.paramNames.length) {
+						result = route;
+					}
+				} 
+				// choose a route between two candidates
+				console.log("choose between", route.pattern, result.pattern)
+			}
+
+			
 		}
 	}
-	return null;
+
+	if(result)
+		result.params = getParams(result.paramNames, pathname.match(result.pattern))
+
+	return result;
 }

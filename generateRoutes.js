@@ -2,23 +2,36 @@ import fs1 from 'fs'
 const fs = fs1.promises
 
 function routeToRegex(string) {
+	let isDynamic = false;
+	let isRest = false;
 	const pattern = `^${string
 		.replace(/\//g, '\\/')
-		.replace(/\[\w+\]/g, '(.+)')
+		.replace(/\[\.\.\.\w+\]/g, '(.+)')
+		.replace(/\[\w+\]/g, '(\\w+)')
 		.replace('.js', '')
 		.replace('index', '')}$`;
 
 	const names = string
 		.split('/')
 		.map((sp) => {
-			if (sp.indexOf('[') >= 0) return sp.substring(sp.indexOf('[') + 1, sp.indexOf(']'));
+			if(sp.indexOf('[...') >=0) {
+				isRest = true;
+				isDynamic = true;
+				return sp.substring(sp.indexOf['['] + 4, sp.indexOf(']'));
+			}
+			if (sp.indexOf('[') >= 0) {
+				isDynamic = true;
+				return sp.substring(sp.indexOf('[') + 1, sp.indexOf(']'));
+			}
 			return false;
 		})
 		.filter(Boolean);
 
 	return {
 		pattern,
-		names
+		names,
+		isDynamic,
+		isRest
 	};
 }
 
@@ -51,11 +64,13 @@ async function processFolder(path, handlers = [], route = '') {
 			if (await isFile(file)) {
 				map[++i] = path + '/' + file;
 
-				const { pattern, names } = routeToRegex(route + '/' + file);
+				const { pattern, names, isDynamic, isRest } = routeToRegex(route + '/' + file);
 
 				routes.push({
 					pattern,
 					names,
+					isDynamic,
+					isRest,
 					handlers: [...handlers, i]
 				});
 			}
@@ -84,6 +99,8 @@ export default {
 				return (
 					`\n        {\n            pattern: ${new RegExp(route.pattern)},\n` +
 					`            paramNames: ${JSON.stringify(route.names)},\n` +
+					`            isDynamic: ${route.isDynamic},\n` +
+					`            isRest: ${route.isRest},\n` +
 					`            handlers: [${route.handlers.map((h) => '$' + h).join(', ')}]\n` +
 					`        },`
 				);
