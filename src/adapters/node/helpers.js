@@ -1,7 +1,5 @@
-import http from 'http'
-import handler from '../handler.js'
 
-function getRawBody(req) {
+export function getRawBody(req) {
     if(!req.headers['content-type']) {
         return null;
     }
@@ -31,7 +29,6 @@ function getRawBody(req) {
 		}
 	});
 }
-
 
 // Copied from somewhere else
 export async function setResponse(res, response) {
@@ -75,7 +72,7 @@ export async function setResponse(res, response) {
 	}
 }
 
-function getRequest(req) {
+export function getRequest(req) {
 //
     //
     const init = {
@@ -87,11 +84,3 @@ function getRequest(req) {
 
     return new Request(init.url, init)
 }
-
-http.createServer(async (req, res) => {
-    const request = getRequest(req)
-
-    const response = await handler(request)
-
-    setResponse(res, response)
-}).listen(3000)

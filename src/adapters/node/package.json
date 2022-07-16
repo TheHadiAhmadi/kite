@@ -1,0 +1,21 @@
+{
+  "name": "adapter-node",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@rollup/plugin-commonjs": "^22.0.1",
+    "@rollup/plugin-node-resolve": "^13.3.0",
+    "node-fetch": "^3.2.8",
+    "rollup": "^2.76.0",
+    "undici": "^5.7.0"
+  }
+}

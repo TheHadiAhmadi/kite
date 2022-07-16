@@ -37,12 +37,11 @@ export function getParams(names = [], match) {
 export function getMatchingRoute(pathname, routes) {
 	let result = null
 	// remove trailingSlach /url/ => /url
-	if(pathname.endsWith('/')) pathname = pathname.slice(0, pathname.length-1)
+	if(pathname.endsWith('/') && pathname.length > 1) pathname = pathname.slice(0, pathname.length-1)
 	
 	for (const route of routes) {
 		if (route.pattern.test(pathname)) {
 
-			console.log('matched', route.pattern)
 			if(!result) {
 				result = route
 			} else {
@@ -53,8 +52,6 @@ export function getMatchingRoute(pathname, routes) {
 						result = route;
 					}
 				} 
-				// choose a route between two candidates
-				console.log("choose between", route.pattern, result.pattern)
 			}
 
 			

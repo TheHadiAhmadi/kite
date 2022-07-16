@@ -1,4 +1,4 @@
-import handle from '../handler.js'
+import handle from 'HANDLER'
 
 console.log('Listening on http://localhost:3000')
 Bun.serve({

@@ -1,13 +1,13 @@
-import manifest from './manfiest.js';
-import { getMatchingRoute, getMethod } from './utils.js';
-
+import manifest from 'MANIFEST';
+import { render } from './utils/render.js';
+import { getMatchingRoute } from './utils/utils.js';
 
 /**
  * @param {Request} request
  */
 export default async function handler(request) {
 	const { pathname } = new URL(request.url);
-	const method = getMethod(request.method);
+	const { method } = request;
 
 	const route = getMatchingRoute(pathname, manifest.routes);
 
@@ -16,10 +16,33 @@ export default async function handler(request) {
 	}
 
     /** @type {RequestEvent} */
-	const event = { request, params: route.params ?? {} };
+	const event = { request, params: route.params ?? {}, data: {} };
 
 	// recursive function
     //
+
+	function renderView(route) {
+		
+			return async function (event) {
+				const html = manifest.views[route.view];
+				let data ={}
+				if(route.handlers?.[route.handlers.length - 1]?.['GET']) {
+					const {body} = await route.handlers[route.handlers.length - 1]['GET'](event);
+					data = body
+				}
+
+				return {
+					
+					body: await render(html, data),
+					headers: {
+						'Content-Type': 'text/html'
+					}
+				}
+			}
+		
+	
+	}
+
     /**
      * @param {number} index
      *
@@ -27,28 +50,20 @@ export default async function handler(request) {
      * */
 	function getHandler(index) {
 		const currentHandler = route.handlers[index];
+
+		if(method === 'GET' && !currentHandler) {
+			return renderView(route)
+		}
         
 		// return the actual endpoint function
 		if (index === route.handlers.length - 1) {
 
             // return html
-			if (method === 'get' && currentHandler['default']) {
-				return async (event) => {
-					const res = await currentHandler['default']({
-						...event,
-						getData: async () => {
-							const res = await currentHandler['get'](event);
-							return res.body;
-						}
-					});
-					return {
-						body: res,
-                        headers: {
-                            'Content-Type': "text/html"
-                        }
-					};
-				};
+
+			if (method === 'GET' && route.view) {
+				return renderView(route);
 			}
+
 			return currentHandler[method];
 		}
 
@@ -60,7 +75,7 @@ export default async function handler(request) {
 
     /** @type {ResponseObject} */
 
-	const res = await handlerFn(event);
+	const res = (await handlerFn(event)) ?? {};
 
 	res.headers = res.headers ?? {};
 	if (res.body && typeof res.body === 'object') {

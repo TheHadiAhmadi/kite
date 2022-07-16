@@ -1,0 +1,27 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "rollup.config.js",
+  "scripts": {
+    "dev:kite": "rollup -c -w",
+    "dev:server": "nodemon output/dev-server.js",
+    "dev": "npm run dev:kite & npm run dev:server",
+    "build": "rollup -c",
+    "start": "deno run -A --no-check ./output/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.19",
+    "rollup": "^2.76.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-watch": "^1.0.1"
+  },
+  "dependencies": {
+    "ht-kit": "file:../dist",
+    "rollup-plugin-watch-assets": "^1.0.1"
+  }
+}
